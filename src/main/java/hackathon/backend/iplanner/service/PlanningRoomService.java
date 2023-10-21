@@ -1,46 +1,54 @@
 package hackathon.backend.iplanner.service;
 
+import hackathon.backend.iplanner.dto.PlanningRoomDto;
 import hackathon.backend.iplanner.model.PlanningRoom;
-import hackathon.backend.iplanner.model.PlanningRooms;
 import hackathon.backend.iplanner.model.User;
+import hackathon.backend.iplanner.repository.PlanningRoomRepository;
+import hackathon.backend.iplanner.repository.UserRepository;
+import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.Optional;
 
 @Service
 public class PlanningRoomService {
-    @Autowired
-    private PlanningRooms planningRooms;
-    @Autowired
-    private UserService userService;
+    private final PlanningRoomRepository planningRoomRepository;
+    private final UserService userService;
+    private final ModelMapper modelMapper;
 
-    public PlanningRoom createPlanningRoom(String roomName, String userId){
-        boolean roomExists = planningRooms.rooms.stream()
-                .map(planningRoom -> planningRoom.getRoomName())
-                .anyMatch(existingName -> existingName.equals(roomName));
-
-       // boolean userExists = userService.userExists(userId);
-
-        //if(roomExists || !userExists) return null;
-
-        String username = userService.getUserById(userId).getUsername();
-        PlanningRoom newPlanningRoom = new PlanningRoom(roomName, userId, username);
-        planningRooms.rooms.add(newPlanningRoom);
-        return newPlanningRoom;
+    PlanningRoomService(PlanningRoomRepository planningRoomRepository, UserService userService, ModelMapper modelMapper){
+        this.planningRoomRepository = planningRoomRepository;
+        this.userService = userService;
+        this.modelMapper = modelMapper;
     }
 
-    public ArrayList<PlanningRoom> getPlanningRooms(){
-        if(planningRooms.rooms.size() > 0) {
-            return planningRooms.rooms;
-        } else {
-            return new ArrayList<>();
-        }
+    public PlanningRoom getPlanningRoom(String roomName){
+        Optional<PlanningRoom> planningRoom = planningRoomRepository.findByRoomName(roomName);
+        if (planningRoom.isPresent()) return planningRoom.get();
+        return null;
     }
 
 
+    public void createPlanningRoom(PlanningRoomDto planningRoomDto){
+        PlanningRoom planningRoom = modelMapper.map(planningRoomDto, PlanningRoom.class);
+        // TODO: maybe extract the creation of objects logic from here
+        planningRoom.setCreationTime(new Date());
+        planningRoom.setJoinedUsers(new ArrayList<String>());
+        // TODO: add room owner, should i do this with using the request initiator's token?
+        planningRoomRepository.save(planningRoom);
+    }
 
-    public PlanningRoom joinPlanningRoom(String username, String roomId){
+    public List<PlanningRoom> getPlanningRooms(){
+        return planningRoomRepository.findAll();
+    }
+
+
+    // TODO: complete join room logic
+    /*public PlanningRoom joinPlanningRoom(String username, String roomId){
         // get room
         PlanningRoom roomToJoin = getRoomById(roomId);
         // get User
@@ -58,11 +66,5 @@ public class PlanningRoomService {
         System.out.println("user to add" + added);
         System.out.println(roomToJoin.users.size());
         return roomToJoin;
-    }
-
-
-    // Helpers
-    PlanningRoom getRoomById(String roomId){
-        return planningRooms.rooms.stream().filter(room -> room.roomId.equals(roomId)).findFirst().get();
-    }
+    }*/
 }

@@ -2,6 +2,7 @@ package hackathon.backend.iplanner.service;
 import hackathon.backend.iplanner.model.User;
 import hackathon.backend.iplanner.repository.UserRepository;
 import hackathon.backend.iplanner.dto.UserDto;
+import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import java.util.ArrayList;
@@ -11,10 +12,12 @@ import java.util.Optional;
 @Service
 public class UserService {
     private final UserRepository userRepository;
+    private final ModelMapper modelMapper;
 
     @Autowired
-    public UserService(UserRepository userRepository) {
+    public UserService(UserRepository userRepository, ModelMapper modelMapper) {
         this.userRepository = userRepository;
+        this.modelMapper = modelMapper;
     }
 
     public List<User> getAllUser(){
@@ -31,11 +34,8 @@ public class UserService {
 
 
     public void createNewUser(UserDto userDto){
-        User user = new User();
-        user.setUsername(userDto.getUsername());
-        user.setEmail(userDto.getEmail());
         // TODO: encrypt password
-        user.setPassword(userDto.getPassword());
+        User user = modelMapper.map(userDto, User.class);
         userRepository.save(user);
     }
 
