@@ -1,20 +1,20 @@
 package hackathon.backend.iplanner.model;
 import java.util.UUID;
 
-import org.bson.types.ObjectId;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 @Document(collection = "user")
 public class User {
     @Id
-    private ObjectId id;
+    private String id;
     private String username;
 
     private String email;
     private String password;
 
     public User(String username, String email, String password) {
+        this.id = UUID.randomUUID().toString();
         this.username = username;
         this.email = email;
         this.password = password;
@@ -42,8 +42,12 @@ public class User {
         return password;
     }
 
-    public ObjectId getId() {
+    public String getId() {
         return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
     }
 
     public String getUsername() {

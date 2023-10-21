@@ -1,39 +1,59 @@
 package hackathon.backend.iplanner.model;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-import org.bson.types.ObjectId;
-import org.springframework.data.mongodb.core.mapping.Document;
-
 import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
 import java.util.UUID;
-@Getter
-@Setter
-@AllArgsConstructor
-@NoArgsConstructor
-@Document(collection = "planning_room")
+
 public class PlanningRoom {
 
-    private ObjectId roomId;
-    private String roomName;
-    private User roomOwner;
-    private List<String> joinedUsers;
-    private Date creationTime;
+    public String roomId;
+    public String roomName;
+    public String roomOwnerId;
+
+    public String roomOwnerUsername;
+    public ArrayList<String> users;
+
+    public String getRoomId() {
+        return roomId;
+    }
+
+    public String getRoomName() {
+        return roomName;
+    }
+
+    public ArrayList<String> getUsers() {
+        return users;
+    }
 
     @Override
     public String toString() {
         return "PlanningRoom{" +
+                "roomId='" + roomId + '\'' +
                 ", roomName='" + roomName + '\'' +
-                " joined users are " + joinedUsers.toString() +
-                " creation time is " + creationTime.toString() +
                 '}';
     }
 
-    boolean isRoomOwner(String username){
-        return this.roomOwner.getUsername().equals(username);
+    public PlanningRoom(String roomName, String userId, String username) {
+        this.roomName = roomName;
+        this.roomId = UUID.randomUUID().toString();
+        this.users = new ArrayList<>();
+        this.roomOwnerId = userId;
+        this.roomOwnerUsername = username;
     }
+
+
+    boolean isUserRoomOwner(String userId){
+        return this.roomOwnerId.equals(userId);
+    }
+
+    public String addUserToRoom(String username){
+        boolean exists = users.contains(username);
+        if (exists) return null;
+        this.users.add(username);
+        return username;
+    }
+
+    public boolean isUserInRoom(String username){
+        return this.users.contains(username);
+    }
+
 }
