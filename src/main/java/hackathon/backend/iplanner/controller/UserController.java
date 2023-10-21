@@ -2,6 +2,7 @@ package hackathon.backend.iplanner.controller;
 
 import hackathon.backend.iplanner.dto.UserDto;
 import hackathon.backend.iplanner.service.UserService;
+import jakarta.validation.Valid;
 import org.modelmapper.ModelMapper;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -21,7 +22,7 @@ public class UserController {
 
     // TODO: validate user data
     @PostMapping("/user")
-    public ResponseEntity<String> createUser(@RequestBody UserDto userDto){
+    public ResponseEntity<String> createUser(@Valid @RequestBody UserDto userDto){
         boolean usernameExists = userService.usernameExists(userDto.getUsername());
         if (usernameExists) return ResponseEntity.status(HttpStatus.CONFLICT).body("Username already exists");
 
