@@ -1,4 +1,4 @@
-package hackathon.backend.iplanner.data;
+package hackathon.backend.iplanner.model;
 
 import java.util.ArrayList;
 import java.util.UUID;

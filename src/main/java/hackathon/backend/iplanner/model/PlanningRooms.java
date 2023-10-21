@@ -1,6 +1,5 @@
-package hackathon.backend.iplanner.data;
+package hackathon.backend.iplanner.model;
 
-import hackathon.backend.iplanner.data.PlanningRoom;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;

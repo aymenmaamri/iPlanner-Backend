@@ -1,7 +1,6 @@
-package hackathon.backend.iplanner.data;
+package hackathon.backend.iplanner.model;
 import java.util.UUID;
 
-import lombok.Setter;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
@@ -13,9 +12,6 @@ public class User {
 
     private String email;
     private String password;
-    public String getEmail() {
-        return email;
-    }
 
     public User(String username, String email, String password) {
         this.id = UUID.randomUUID().toString();
@@ -25,6 +21,10 @@ public class User {
     }
 
     public User() {}
+
+    public String getEmail() {
+        return email;
+    }
 
     public void setUsername(String username) {
         this.username = username;

@@ -1,7 +1,7 @@
 package hackathon.backend.iplanner.controller;
 
 import hackathon.backend.iplanner.service.PlanningRoomService;
-import hackathon.backend.iplanner.data.PlanningRoom;
+import hackathon.backend.iplanner.model.PlanningRoom;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;

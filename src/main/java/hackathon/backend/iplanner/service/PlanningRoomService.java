@@ -1,9 +1,8 @@
 package hackathon.backend.iplanner.service;
 
-import hackathon.backend.iplanner.data.PlanningRoom;
-import hackathon.backend.iplanner.data.PlanningRooms;
-import hackathon.backend.iplanner.data.User;
-import hackathon.backend.iplanner.service.UserService;
+import hackathon.backend.iplanner.model.PlanningRoom;
+import hackathon.backend.iplanner.model.PlanningRooms;
+import hackathon.backend.iplanner.model.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 

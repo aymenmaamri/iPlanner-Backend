@@ -1,7 +1,7 @@
-package hackathon.backend.iplanner.data;
+package hackathon.backend.iplanner.repository;
 
+import hackathon.backend.iplanner.model.User;
 import org.springframework.data.mongodb.repository.MongoRepository;
-import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
