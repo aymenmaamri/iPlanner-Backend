@@ -5,6 +5,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.bson.types.ObjectId;
+import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.util.ArrayList;
@@ -18,11 +19,13 @@ import java.util.UUID;
 @Document(collection = "planning_room")
 public class PlanningRoom {
 
+    @Id
     private ObjectId roomId;
     private String roomName;
     private User roomOwner;
     private List<String> joinedUsers;
     private Date creationTime;
+    private long keepAliveDurationSeconds;
 
     @Override
     public String toString() {
@@ -33,7 +36,8 @@ public class PlanningRoom {
                 '}';
     }
 
-    boolean isRoomOwner(String username){
+    public boolean isRoomOwner(String username){
         return this.roomOwner.getUsername().equals(username);
     }
+    public boolean isUserAlreadyJoined(String username) {return this.joinedUsers.contains(username);}
 }
