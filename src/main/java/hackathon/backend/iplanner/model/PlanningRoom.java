@@ -22,7 +22,7 @@ public class PlanningRoom {
     @Id
     private ObjectId roomId;
     private String roomName;
-    private User roomOwner;
+    private String roomOwner;
     private List<String> joinedUsers;
     private Date creationTime;
     private long keepAliveDurationSeconds;
@@ -30,14 +30,14 @@ public class PlanningRoom {
     @Override
     public String toString() {
         return "PlanningRoom{" +
-                ", roomName='" + roomName + '\'' +
-                " joined users are " + joinedUsers.toString() +
-                " creation time is " + creationTime.toString() +
+                " roomName='" + this.roomName + '\'' +
+                " joined users are " + this.joinedUsers.toString() +
+                " roomOwner is " + this.roomOwner +
                 '}';
     }
 
     public boolean isRoomOwner(String username){
-        return this.roomOwner.getUsername().equals(username);
+        return this.roomOwner.equals(username);
     }
     public boolean isUserAlreadyJoined(String username) {return this.joinedUsers.contains(username);}
 }

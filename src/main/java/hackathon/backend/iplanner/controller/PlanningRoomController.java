@@ -1,7 +1,6 @@
 package hackathon.backend.iplanner.controller;
 
 import hackathon.backend.iplanner.dto.PlanningRoomDto;
-import hackathon.backend.iplanner.dto.UserDto;
 import hackathon.backend.iplanner.model.User;
 import hackathon.backend.iplanner.service.PlanningRoomService;
 import hackathon.backend.iplanner.model.PlanningRoom;
@@ -10,13 +9,17 @@ import jakarta.validation.Valid;
 import org.modelmapper.ModelMapper;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
-@Controller
+@CrossOrigin(origins = "*", allowedHeaders = "*")
+
+@RestController
 public class PlanningRoomController {
     private final PlanningRoomService planningRoomService;
     private final UserService userService;
@@ -29,12 +32,14 @@ public class PlanningRoomController {
     }
 
     @PostMapping("/planning-room")
-    public ResponseEntity<String> createPlanningRoom(@Valid @RequestBody PlanningRoomDto planningRoomDto){
+    public ResponseEntity<PlanningRoomDto> createPlanningRoom(@Valid @RequestBody PlanningRoomDto planningRoomDto){
         PlanningRoom planningRoom = planningRoomService.getPlanningRoom(planningRoomDto.getRoomName());
-        if(planningRoom != null) return ResponseEntity.status(HttpStatus.CONFLICT).body("a planning room with this name already exists");
+        if(planningRoom != null) return ResponseEntity.status(HttpStatus.CONFLICT).body(null);
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String initiatorUsername = authentication.getName();
         // Call the service to create the planning room
-        String roomName = planningRoomService.createPlanningRoom(planningRoomDto);
-        return ResponseEntity.status(HttpStatus.CREATED).body(roomName);
+        PlanningRoom created = planningRoomService.createPlanningRoom(planningRoomDto, initiatorUsername);
+        return ResponseEntity.status(HttpStatus.CREATED).body(modelMapper.map(created, PlanningRoomDto.class));
     }
 
     @GetMapping("/planning-room")
@@ -47,14 +52,26 @@ public class PlanningRoomController {
     }
 
     @GetMapping("/planning-room/join")
-    public ResponseEntity<String> joinPlanningRoom(@RequestParam String roomName, @RequestParam String username){
+    public ResponseEntity<PlanningRoomDto> joinPlanningRoom(@RequestParam String roomName, @RequestParam String username){
         PlanningRoom planningRoom = planningRoomService.getPlanningRoom(roomName);
         User user = userService.getUserByUsername(username);
 
-        if (planningRoom == null || user == null) return ResponseEntity.badRequest().body("error while joining room");
+        if (planningRoom == null || user == null) return ResponseEntity.badRequest().body(null);
         PlanningRoom joined = planningRoomService.joinPlanningRoom(username, roomName);
-        System.out.println("joined"+ joined);
-        if (joined == null) return ResponseEntity.badRequest().body("error while joining room");
-        return ResponseEntity.ok("room joined successfully");
+        if (joined == null) return ResponseEntity.badRequest().body(null);
+        return ResponseEntity.ok(modelMapper.map(joined, PlanningRoomDto.class));
+    }
+
+    @DeleteMapping("/planning-room/{roomName}")
+    public ResponseEntity<String> deletePlanningRoom(@PathVariable String roomName){
+        // get delete initiator
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String initiatorUsername = authentication.getName();
+        try {
+            planningRoomService.deletePlanningRoom(roomName, initiatorUsername);
+            return ResponseEntity.status(204).body("");
+        } catch (IllegalStateException e) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
+        }
     }
 }

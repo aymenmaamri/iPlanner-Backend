@@ -1,22 +1,21 @@
 package hackathon.backend.iplanner.dto;
 
-import hackathon.backend.iplanner.model.User;
+import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotEmpty;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.util.List;
-
 @Getter
 @Setter
-@NoArgsConstructor
 @AllArgsConstructor
-public class PlanningRoomDto {
+@NoArgsConstructor
+public class UserRequestDto {
     @NotEmpty
-    private String roomName;
-    private String roomOwner;
-    private List<String> joinedUsers;
-
+    private String username;
+    @Email
+    private String email;
+    @NotEmpty
+    private String password;
 }

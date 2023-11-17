@@ -1,11 +1,12 @@
 package hackathon.backend.iplanner.service;
 import hackathon.backend.iplanner.model.User;
 import hackathon.backend.iplanner.repository.UserRepository;
-import hackathon.backend.iplanner.dto.UserDto;
+import hackathon.backend.iplanner.dto.UserRequestDto;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import java.util.ArrayList;
+
 import java.util.List;
 import java.util.Optional;
 
@@ -13,11 +14,13 @@ import java.util.Optional;
 public class UserService {
     private final UserRepository userRepository;
     private final ModelMapper modelMapper;
+    private final PasswordEncoder passwordEncoder;
 
     @Autowired
-    public UserService(UserRepository userRepository, ModelMapper modelMapper) {
+    public UserService(UserRepository userRepository, ModelMapper modelMapper, PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
         this.modelMapper = modelMapper;
+        this.passwordEncoder = passwordEncoder;
     }
 
     public List<User> getAllUser(){
@@ -33,9 +36,10 @@ public class UserService {
     }
 
 
-    public void createNewUser(UserDto userDto){
-        // TODO: encrypt password
-        User user = modelMapper.map(userDto, User.class);
+    public void createNewUser(UserRequestDto userRequestDto){
+        User user = modelMapper.map(userRequestDto, User.class);
+        // TODO: this looks wierd
+        user.setPassword(passwordEncoder.encode(userRequestDto.getPassword()));
         userRepository.save(user);
     }
 

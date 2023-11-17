@@ -33,14 +33,15 @@ public class PlanningRoomService {
     }
 
 
-    public String createPlanningRoom(PlanningRoomDto planningRoomDto){
+    public PlanningRoom createPlanningRoom(PlanningRoomDto planningRoomDto, String username){
         PlanningRoom planningRoom = modelMapper.map(planningRoomDto, PlanningRoom.class);
         // TODO: maybe extract the creation of objects logic from here
         planningRoom.setCreationTime(new Date());
         planningRoom.setJoinedUsers(new ArrayList<String>());
+        planningRoom.setRoomOwner(username);
         // TODO: add room owner, should i do this with using the request initiator's token?
         planningRoomRepository.save(planningRoom);
-        return planningRoom.getRoomName();
+        return planningRoom;
     }
 
     public List<PlanningRoom> getPlanningRooms(){
@@ -59,5 +60,16 @@ public class PlanningRoomService {
         PlanningRoom joined = planningRoomRepository.save(planningRoom);
 
         return joined;
+    }
+
+    public void deletePlanningRoom(String roomName, String initiatorUsername) {
+        Optional<PlanningRoom> optionalPlanningRoom = planningRoomRepository.findByRoomName(roomName);
+        PlanningRoom planningRoom = optionalPlanningRoom.orElseThrow(() ->
+                new IllegalStateException("Room not found"));
+        if (planningRoom.isRoomOwner(initiatorUsername)){
+            planningRoomRepository.deleteByRoomName(roomName);
+            return;
+        }
+        throw new IllegalStateException("User is not room owner");
     }
 }
