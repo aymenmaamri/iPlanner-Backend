@@ -14,4 +14,5 @@ public interface PlanningRoomRepository extends MongoRepository<PlanningRoom, Ob
     List<PlanningRoom> findAll();
     Optional<PlanningRoom> findByRoomName(String roomName);
     Optional<PlanningRoom> findByRoomOwner(User roomOwner);
+    Optional<PlanningRoom> deleteByRoomName(String roomName);
 }

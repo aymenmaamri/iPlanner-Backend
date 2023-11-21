@@ -1,6 +1,5 @@
 package hackathon.backend.iplanner.dto;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotEmpty;
 import lombok.AllArgsConstructor;
@@ -12,12 +11,10 @@ import lombok.Setter;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class UserDto {
+public class UserResponseDto {
+
     @NotEmpty
     private String username;
     @Email
     private String email;
-    @NotEmpty
-    @JsonIgnore
-    private String password;
 }

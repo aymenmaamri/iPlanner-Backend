@@ -33,38 +33,42 @@ public class PlanningRoomService {
     }
 
 
-    public void createPlanningRoom(PlanningRoomDto planningRoomDto){
+    public PlanningRoom createPlanningRoom(PlanningRoomDto planningRoomDto, String username){
         PlanningRoom planningRoom = modelMapper.map(planningRoomDto, PlanningRoom.class);
         // TODO: maybe extract the creation of objects logic from here
         planningRoom.setCreationTime(new Date());
         planningRoom.setJoinedUsers(new ArrayList<String>());
+        planningRoom.setRoomOwner(username);
         // TODO: add room owner, should i do this with using the request initiator's token?
         planningRoomRepository.save(planningRoom);
+        return planningRoom;
     }
 
     public List<PlanningRoom> getPlanningRooms(){
         return planningRoomRepository.findAll();
     }
 
-
     // TODO: complete join room logic
-    /*public PlanningRoom joinPlanningRoom(String username, String roomId){
-        // get room
-        PlanningRoom roomToJoin = getRoomById(roomId);
-        // get User
-        User userToJoin = userService.getUserByUsername(username);
-
-        if(roomToJoin == null || userToJoin == null) return null;
+    public PlanningRoom joinPlanningRoom(String username, String roomName){
+        PlanningRoom planningRoom = planningRoomRepository.findByRoomName(roomName)
+                .orElseThrow(() -> new IllegalStateException("Room not found"));
 
         // check if the user is already joined
-        boolean hasJoined = roomToJoin.isUserInRoom(userToJoin.getUsername());
-        if(hasJoined) return roomToJoin;
+        if(planningRoom.isUserAlreadyJoined(username)) return null;
 
+        planningRoom.getJoinedUsers().add(username);
+        PlanningRoom joined = planningRoomRepository.save(planningRoom);
+        return joined;
+    }
 
-        String added = roomToJoin.addUserToRoom(userToJoin.getUsername());
-
-        System.out.println("user to add" + added);
-        System.out.println(roomToJoin.users.size());
-        return roomToJoin;
-    }*/
+    public void deletePlanningRoom(String roomName, String initiatorUsername) {
+        Optional<PlanningRoom> optionalPlanningRoom = planningRoomRepository.findByRoomName(roomName);
+        PlanningRoom planningRoom = optionalPlanningRoom.orElseThrow(() ->
+                new IllegalStateException("Room not found"));
+        if (planningRoom.isRoomOwner(initiatorUsername)){
+            planningRoomRepository.deleteByRoomName(roomName);
+            return;
+        }
+        throw new IllegalStateException("User is not room owner");
+    }
 }
