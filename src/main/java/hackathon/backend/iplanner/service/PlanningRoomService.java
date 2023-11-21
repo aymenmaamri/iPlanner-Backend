@@ -48,17 +48,16 @@ public class PlanningRoomService {
         return planningRoomRepository.findAll();
     }
 
-
     // TODO: complete join room logic
     public PlanningRoom joinPlanningRoom(String username, String roomName){
-        PlanningRoom planningRoom = planningRoomRepository.findByRoomName(roomName).get();
+        PlanningRoom planningRoom = planningRoomRepository.findByRoomName(roomName)
+                .orElseThrow(() -> new IllegalStateException("Room not found"));
 
         // check if the user is already joined
         if(planningRoom.isUserAlreadyJoined(username)) return null;
 
         planningRoom.getJoinedUsers().add(username);
         PlanningRoom joined = planningRoomRepository.save(planningRoom);
-
         return joined;
     }
 

@@ -18,5 +18,6 @@ public class PlanningRoomDto {
     private String roomName;
     private String roomOwner;
     private List<String> joinedUsers;
+    private int numberOfPlanners;
 
 }
