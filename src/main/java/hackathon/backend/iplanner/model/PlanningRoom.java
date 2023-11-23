@@ -24,6 +24,8 @@ public class PlanningRoom {
     private String roomName;
     private String roomOwner;
     private List<String> joinedUsers;
+    private List<PlanningStory> planningStories;
+
     private int numberOfPlanners;
     private Date creationTime;
     private long keepAliveDurationSeconds;

@@ -1,12 +1,11 @@
 package hackathon.backend.iplanner.service;
 
 import hackathon.backend.iplanner.dto.PlanningRoomDto;
+import hackathon.backend.iplanner.factories.PlanningRoomFactoryImpl;
 import hackathon.backend.iplanner.model.PlanningRoom;
-import hackathon.backend.iplanner.model.User;
+import hackathon.backend.iplanner.model.PlanningStory;
 import hackathon.backend.iplanner.repository.PlanningRoomRepository;
-import hackathon.backend.iplanner.repository.UserRepository;
 import org.modelmapper.ModelMapper;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -17,13 +16,11 @@ import java.util.Optional;
 @Service
 public class PlanningRoomService {
     private final PlanningRoomRepository planningRoomRepository;
-    private final UserService userService;
-    private final ModelMapper modelMapper;
+    private final PlanningRoomFactoryImpl planningRoomFactory;
 
-    PlanningRoomService(PlanningRoomRepository planningRoomRepository, UserService userService, ModelMapper modelMapper){
+    PlanningRoomService(PlanningRoomRepository planningRoomRepository, PlanningRoomFactoryImpl planningRoomFactory){
         this.planningRoomRepository = planningRoomRepository;
-        this.userService = userService;
-        this.modelMapper = modelMapper;
+        this.planningRoomFactory = planningRoomFactory;
     }
 
     public PlanningRoom getPlanningRoom(String roomName){
@@ -32,14 +29,9 @@ public class PlanningRoomService {
         return null;
     }
 
-
     public PlanningRoom createPlanningRoom(PlanningRoomDto planningRoomDto, String username){
-        PlanningRoom planningRoom = modelMapper.map(planningRoomDto, PlanningRoom.class);
-        // TODO: maybe extract the creation of objects logic from here
-        planningRoom.setCreationTime(new Date());
-        planningRoom.setJoinedUsers(new ArrayList<String>());
-        planningRoom.setRoomOwner(username);
-        // TODO: add room owner, should i do this with using the request initiator's token?
+        // TODO: maybe implement the logic for user verification here?
+        PlanningRoom planningRoom = planningRoomFactory.createPlanningRoom(planningRoomDto, username);
         planningRoomRepository.save(planningRoom);
         return planningRoom;
     }
@@ -48,7 +40,6 @@ public class PlanningRoomService {
         return planningRoomRepository.findAll();
     }
 
-    // TODO: complete join room logic
     public PlanningRoom joinPlanningRoom(String username, String roomName){
         PlanningRoom planningRoom = planningRoomRepository.findByRoomName(roomName)
                 .orElseThrow(() -> new IllegalStateException("Room not found"));
@@ -70,5 +61,10 @@ public class PlanningRoomService {
             return;
         }
         throw new IllegalStateException("User is not room owner");
+    }
+
+    public List<PlanningStory> getStoriesInRoom(String roomName) {
+        PlanningRoom planningRoom = planningRoomRepository.findByRoomName(roomName).orElseThrow(() -> new IllegalStateException("Room not found"));
+        return planningRoom.getPlanningStories();
     }
 }
