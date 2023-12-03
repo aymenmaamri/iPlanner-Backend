@@ -1,7 +1,6 @@
 package hackathon.backend.iplanner.dto;
 
-import hackathon.backend.iplanner.model.PlanningStory;
-import hackathon.backend.iplanner.model.User;
+import hackathon.backend.iplanner.model.Story;
 import jakarta.validation.constraints.NotEmpty;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -21,6 +20,6 @@ public class PlanningRoomDto {
     private List<String> joinedUsers;
     private int numberOfPlanners;
 
-    private List<PlanningStory> planningStories;
+    private List<Story> planningStories;
 
 }

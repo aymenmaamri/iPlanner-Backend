@@ -1,12 +1,12 @@
 package hackathon.backend.iplanner.model;
 
+import hackathon.backend.iplanner.enums.StoryStatus;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.bson.types.ObjectId;
 import org.springframework.data.annotation.Id;
-import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.util.Map;
 
@@ -14,12 +14,12 @@ import java.util.Map;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class PlanningStory {
+public class Story {
     @Id
     private ObjectId storyId;
     private String title;
     private String description;
     private Map<String, Integer> playerEstimations;
-    private String status;
+    private StoryStatus status;
     private int finalEstimate;
 }

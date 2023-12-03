@@ -1,6 +1,6 @@
 package hackathon.backend.iplanner.controller;
 
-import hackathon.backend.iplanner.model.PlanningStory;
+import hackathon.backend.iplanner.model.Story;
 import hackathon.backend.iplanner.service.PlanningRoomService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -18,10 +18,7 @@ public class StoriesController {
     }
 
     @GetMapping("/list")
-    public ResponseEntity<List<PlanningStory>> getRoomStories(@PathVariable String roomName){
-        List<PlanningStory> stories = planningRoomService.getStoriesInRoom(roomName);
+    public ResponseEntity<List<Story>> getRoomStories(@PathVariable String roomName){
+        List<Story> stories = planningRoomService.getStoriesInRoom(roomName);
         return ResponseEntity.ok(stories);
-    }
-
-    @PostMapping
-}
+    }}

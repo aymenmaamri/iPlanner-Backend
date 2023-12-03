@@ -11,7 +11,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -58,7 +57,6 @@ public class PlanningRoomController {
 
         if (planningRoom == null || user == null) return ResponseEntity.badRequest().body(null);
         PlanningRoom joined = planningRoomService.joinPlanningRoom(username, roomName);
-        if (joined == null) return ResponseEntity.badRequest().body(null);
         return ResponseEntity.ok(modelMapper.map(joined, PlanningRoomDto.class));
     }
 
@@ -73,5 +71,11 @@ public class PlanningRoomController {
         } catch (IllegalStateException e) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body(e.getMessage());
         }
+    }
+
+    @GetMapping("/planning-room/isOwner")
+    public ResponseEntity<Boolean> isUserPlanningRoomOwner(@RequestParam String roomName, @RequestParam String username){
+        boolean isOwner = planningRoomService.isUserRoomOwner(roomName, username);
+        return ResponseEntity.ok().body(isOwner);
     }
 }

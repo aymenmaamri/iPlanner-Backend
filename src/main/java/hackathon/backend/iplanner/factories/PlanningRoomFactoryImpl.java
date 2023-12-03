@@ -2,7 +2,7 @@ package hackathon.backend.iplanner.factories;
 
 import hackathon.backend.iplanner.dto.PlanningRoomDto;
 import hackathon.backend.iplanner.model.PlanningRoom;
-import hackathon.backend.iplanner.model.PlanningStory;
+import hackathon.backend.iplanner.model.Story;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 
@@ -23,7 +23,7 @@ public class PlanningRoomFactoryImpl implements PlanningRoomFactory{
         PlanningRoom planningRoom = modelMapper.map(planningRoomDto, PlanningRoom.class);
         planningRoom.setCreationTime(new Date());
         planningRoom.setJoinedUsers(new ArrayList<String>());
-        planningRoom.setPlanningStories(new ArrayList<PlanningStory>());
+        planningRoom.setPlanningStories(new ArrayList<Story>());
         planningRoom.setKeepAliveDurationSeconds(7200);
         planningRoom.setRoomOwner(username);
         return planningRoom;
