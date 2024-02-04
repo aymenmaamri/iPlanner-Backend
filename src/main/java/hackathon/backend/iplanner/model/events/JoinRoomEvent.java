@@ -1,7 +1,5 @@
 package hackathon.backend.iplanner.model.events;
 
-import hackathon.backend.iplanner.enums.EventType;
-import hackathon.backend.iplanner.model.PlayerPositionOnBoard;
 import lombok.*;
 
 import java.util.Map;
@@ -13,10 +11,6 @@ import java.util.Map;
 @Builder
 public class JoinRoomEvent extends RoomEvent {
 
-    // TODO: should i combine this infos?
-    private Map<String, PlayerPositionOnBoard> payload;
-    private PlayerPositionOnBoard positionOnBoard;
-    private final EventType type = EventType.JOIN_ROOM;
-
-
+    Map<String, RoomEvent> currentPlayers;
+    CreateStoryEvent storyInEstimation;
 }

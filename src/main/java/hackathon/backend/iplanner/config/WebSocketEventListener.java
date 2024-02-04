@@ -1,7 +1,8 @@
 package hackathon.backend.iplanner.config;
 
 import hackathon.backend.iplanner.enums.EventType;
-import hackathon.backend.iplanner.model.events.RoomEvent;
+import hackathon.backend.iplanner.model.PlanningRoom;
+import hackathon.backend.iplanner.model.events.LeaveRoomEvent;
 import hackathon.backend.iplanner.service.PlanningRoomService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -27,17 +28,18 @@ public class WebSocketEventListener {
        // put other attributes in the controller method
        String username = (String) stompHeaderAccessor.getSessionAttributes().get("username");
        String roomName = (String) stompHeaderAccessor.getSessionAttributes().get("roomName");
+
        if (username != null){
-
+           // TODO: fix
+           LeaveRoomEvent leaveRoomEvent = LeaveRoomEvent.builder().build();
+           leaveRoomEvent.setRoomName(roomName);
+           leaveRoomEvent.setSender(username);
+           leaveRoomEvent.setType(EventType.LEAVE_ROOM);
            // Call the service method to remove the user from the planning room
-           planningRoomService.removeUserFromPlanningRoom(username, roomName);
+           PlanningRoom planningRoom = planningRoomService.removeUserFromPlanningRoom(leaveRoomEvent);
+           leaveRoomEvent.setCurrentPlayers(planningRoom.getCurrentPlayers());
 
-
-           var roomEvent = RoomEvent.builder()
-                   .type(EventType.LEAVE_ROOM)
-                   .sender(username)
-                   .build();
-           messageSendingOperations.convertAndSend("/topic/" + roomName, roomEvent);
+           messageSendingOperations.convertAndSend("/topic/" + roomName, leaveRoomEvent);
        }
     }
 }

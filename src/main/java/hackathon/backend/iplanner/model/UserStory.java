@@ -14,12 +14,13 @@ import java.util.Map;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class Story {
+public class UserStory {
     @Id
     private ObjectId storyId;
     private String title;
     private String description;
-    private Map<String, Integer> playerEstimations;
-    private StoryStatus status;
-    private int finalEstimate;
+    private Map<String, PokerCard> playerEstimations;
+    // Todo: maybe implement later
+    // private StoryStatus status;
+    private int estimate;
 }

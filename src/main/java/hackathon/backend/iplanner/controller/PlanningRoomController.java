@@ -1,7 +1,10 @@
 package hackathon.backend.iplanner.controller;
 
 import hackathon.backend.iplanner.dto.PlanningRoomDto;
+import hackathon.backend.iplanner.enums.EventType;
+import hackathon.backend.iplanner.exception.PlanningRoomAlreadyExistsException;
 import hackathon.backend.iplanner.model.User;
+import hackathon.backend.iplanner.model.events.JoinRoomEvent;
 import hackathon.backend.iplanner.service.PlanningRoomService;
 import hackathon.backend.iplanner.model.PlanningRoom;
 import hackathon.backend.iplanner.service.UserService;
@@ -32,33 +35,39 @@ public class PlanningRoomController {
 
     @PostMapping("/planning-room")
     public ResponseEntity<PlanningRoomDto> createPlanningRoom(@Valid @RequestBody PlanningRoomDto planningRoomDto){
-        PlanningRoom planningRoom = planningRoomService.getPlanningRoom(planningRoomDto.getRoomName());
-        if(planningRoom != null) return ResponseEntity.status(HttpStatus.CONFLICT).body(null);
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String initiatorUsername = authentication.getName();
-        // Call the service to create the planning room
-        PlanningRoom created = planningRoomService.createPlanningRoom(planningRoomDto, initiatorUsername);
-        return ResponseEntity.status(HttpStatus.CREATED).body(modelMapper.map(created, PlanningRoomDto.class));
+        try {
+            // get room creator from token
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            String initiatorUsername = authentication.getName();
+            // TODO: is this valid, to set the room owner in the DTO?
+            planningRoomDto.setRoomOwner(initiatorUsername);
+            PlanningRoom created = planningRoomService.createPlanningRoom(planningRoomDto);
+            return ResponseEntity.status(HttpStatus.CREATED).body(modelMapper.map(created, PlanningRoomDto.class));
+        } catch (PlanningRoomAlreadyExistsException ex) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(null);
+        } catch (Exception ex) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        }
     }
 
     @GetMapping("/planning-room")
     public ResponseEntity<List<PlanningRoomDto>> getPlanningRoom(){
         List<PlanningRoom> rooms = planningRoomService.getPlanningRooms();
-        List<PlanningRoomDto> roomDtos = rooms.stream()
+        List<PlanningRoomDto> roomDTOs = rooms.stream()
                 .map(room -> modelMapper.map(room, PlanningRoomDto.class))
                 .collect(Collectors.toList());
-        return ResponseEntity.ok(roomDtos);
+        return ResponseEntity.ok(roomDTOs);
     }
 
-    @GetMapping("/planning-room/join")
+   /* @GetMapping("/planning-room/join")
     public ResponseEntity<PlanningRoomDto> joinPlanningRoom(@RequestParam String roomName, @RequestParam String username){
         PlanningRoom planningRoom = planningRoomService.getPlanningRoom(roomName);
         User user = userService.getUserByUsername(username);
 
         if (planningRoom == null || user == null) return ResponseEntity.badRequest().body(null);
-        PlanningRoom joined = planningRoomService.joinPlanningRoom(username, roomName);
+        PlanningRoom joined = planningRoomService.joinPlanningRoom(new JoinRoomEvent(roomName));
         return ResponseEntity.ok(modelMapper.map(joined, PlanningRoomDto.class));
-    }
+    }*/
 
     @DeleteMapping("/planning-room/{roomName}")
     public ResponseEntity<String> deletePlanningRoom(@PathVariable String roomName){

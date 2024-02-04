@@ -1,22 +1,22 @@
 package hackathon.backend.iplanner.model;
 
-
-import hackathon.backend.iplanner.enums.PokerCardType;
+import hackathon.backend.iplanner.model.events.RoomEvent;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.bson.types.ObjectId;
 import org.springframework.data.annotation.Id;
+
+import java.util.List;
 
 @Getter
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class PokerCard {
+public class UserEvent {
+    // Do I need an id here?
     @Id
-    private ObjectId cardId;
-    private int value;
-    private String color;
-    private PokerCardType type;
+    private String id;
+    private User user;
+    private List<RoomEvent> eventList;
 }

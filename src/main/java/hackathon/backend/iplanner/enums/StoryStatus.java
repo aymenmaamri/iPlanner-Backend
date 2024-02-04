@@ -4,5 +4,5 @@ public enum StoryStatus {
     DONE,
     IN_ESTIMATION,
     IN_FINAL_ESTIMATION,
-    PENDING
+    DISCARDED,
 }

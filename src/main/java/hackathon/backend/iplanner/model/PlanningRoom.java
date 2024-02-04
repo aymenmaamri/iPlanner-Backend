@@ -1,6 +1,6 @@
 package hackathon.backend.iplanner.model;
 
-import lombok.AllArgsConstructor;
+import hackathon.backend.iplanner.model.events.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -8,11 +8,10 @@ import org.bson.types.ObjectId;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
-import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import static hackathon.backend.iplanner.utils.PlanningRoomUtils.initializePlayerPositions;
+import java.util.stream.Collectors;
 
 @Getter
 @Setter
@@ -24,57 +23,97 @@ public class PlanningRoom {
     private ObjectId roomId;
     private String roomName;
     private String roomOwner;
-    private List<String> joinedUsers;
-    // TODO: should i combine joinedUsers and playerPositions into one data structure?
-    // should this be here?
-    private Map<String, PlayerPositionOnBoard> playerPositions = initializePlayerPositions();
+    // This field is set by the user, this number msut be between 2 and 7
+    private int maxRoomPlannersNumber;
 
-    private List<Story> planningStories;
-    private int numberOfPlanners;
-    private Date creationTime;
-    private long keepAliveDurationSeconds;
+    //TODO: Implement later
+    // private long keepAliveDurationSeconds;
+    private Map<String, UserEvent> userEvents;
+
+    // TODO: should this be here, this constraint represents the maximal number of players a room can have
     public static final int MAX_PLAYERS_PER_ROOM = 7;
 
-
-    @Override
-    public String toString() {
-        return "PlanningRoom{" +
-                " roomName='" + this.roomName + '\'' +
-                " joined users are " + this.joinedUsers.toString() +
-                " roomOwner is " + this.roomOwner +
-                '}';
-    }
-
-    public boolean isRoomOwner(String username){
+    public boolean isOwner(String username){
         return this.roomOwner.equals(username);
     }
-    public boolean isUserAlreadyJoined(String username) {return this.joinedUsers.contains(username);}
+    public boolean isUserCurrentlyJoined(String username) {
+        UserEvent userEvent = userEvents.get(username);
 
-    public boolean canJoinRoom() {
-        // Check if there is room for another user to join
-        return joinedUsers.size() < MAX_PLAYERS_PER_ROOM;
-    }
+        if (userEvent == null || userEvent.getEventList().isEmpty()) {
+            // If the event list is empty, the user has not joined
+            return false;
+        }
 
-    // TODO: should this be here or in the service?
-    public void removePlayer(String username){
-        this.joinedUsers.remove(username);
-    }
-
-    public boolean isAlreadyAssignedAPosition(String username) {
-        return this.playerPositions.values()
-                .stream()
-                .anyMatch(position -> position.getUsername().equals(username));
-    }
-
-    public void freeBoardPosition(String username){
-        for (Map.Entry<String, PlayerPositionOnBoard> entry : playerPositions.entrySet()) {
-            if (entry.getValue().getUsername().equals(username)) {
-                // Found the entry with the matching username, replace the value, is using new the best practice here?
-                entry.setValue(new PlayerPositionOnBoard("", false, entry.getValue().getPosition()));
-                break;
+        List<RoomEvent> eventList = userEvent.getEventList();
+        for (int i = eventList.size() - 1; i >= 0; i--) {
+            RoomEvent event = eventList.get(i);
+            if (event instanceof JoinRoomEvent) {
+                // User is joined
+                return true;
+            } else if (event instanceof LeaveRoomEvent) {
+                // User has left
+                return false;
             }
         }
+        return false;
     }
 
+   public boolean isJoinable() {
+        // think about name
+        int totalJoinedUsers = userEvents.size();
+        if (totalJoinedUsers < maxRoomPlannersNumber) return true;
+
+        // Check if there is room for another user to join
+       int currentJoinedUsers = (int) userEvents.values().stream()
+               .filter(userEvent -> isUserCurrentlyJoined(userEvent.getUser().getUsername()))
+               .count();
+
+       if (currentJoinedUsers < maxRoomPlannersNumber) return true;
+       return false;
+    }
+
+    public Map<String, RoomEvent> getCurrentState() {
+        Map<String, RoomEvent> currentPlayersState = new HashMap<String, RoomEvent>();
+        List<String> currentPlayers = getCurrentPlayers();
+        // get the last sent event for each current player
+        for (String player: currentPlayers){
+            RoomEvent lastPlayerEvent = getPlayerLastEvent(player);
+            currentPlayersState.put(player, lastPlayerEvent);
+        }
+
+        return currentPlayersState;
+    }
+
+    public List<String> getCurrentPlayers() {
+        return userEvents.keySet().stream()
+                .filter(username -> isUserCurrentlyJoined(username))
+                .collect(Collectors.toList());
+    }
+
+    private RoomEvent getPlayerLastEvent(String player) {
+        List<RoomEvent> userEvent = userEvents.get(player).getEventList();
+        // If event is of type join, return null to avoid infinite recursion exception
+        if (userEvent.get(userEvent.size() - 1) instanceof JoinRoomEvent) return null;
+        return userEvent.get(userEvent.size() - 1);
+    }
+
+    public List<CreateStoryEvent> getStories() {
+        List<CreateStoryEvent> roomStories = userEvents.values().stream()
+                .flatMap(userEvent -> userEvent.getEventList().stream())
+                .filter(event -> event instanceof CreateStoryEvent)
+                .map(event -> (CreateStoryEvent) event)
+                .collect(Collectors.toList());
+        return roomStories;
+    }
+
+    // Check if the room owner has a story in estimation
+    public CreateStoryEvent getCurrentStoryInEstimation() {
+        List<RoomEvent> userEventList = userEvents.get(this.roomOwner).getEventList();
+        for (int i = userEventList.size() - 1; i >= 0; i--) {
+            if (userEventList.get(i) instanceof CreateStoryEvent) return (CreateStoryEvent) userEventList.get(i);
+            if (userEventList.get(i) instanceof EstimateStoryEvent) return null;
+        }
+        return null;
+    }
 }
 
