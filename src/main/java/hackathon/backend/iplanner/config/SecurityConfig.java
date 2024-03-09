@@ -49,7 +49,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests( auth -> auth
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers("/user/create").permitAll()
-                        .anyRequest().authenticated()
+                        .anyRequest().permitAll()
                 )
                 .oauth2ResourceServer(OAuth2ResourceServerConfigurer::jwt)
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
@@ -67,19 +67,14 @@ public class SecurityConfig {
                "*"
         ));
         configuration.setAllowCredentials(true);
+        configuration.addAllowedHeader("Sec-WebSocket-Key");
+        configuration.addAllowedHeader("Sec-WebSocket-Extensions");
+        configuration.addAllowedHeader("Sec-WebSocket-Version");
+        configuration.addAllowedHeader("Origin");
+
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
         return source;
-    }
-
-    @Bean
-    public InMemoryUserDetailsManager users() {
-        return new InMemoryUserDetailsManager(
-                User.withUsername("aymen")
-                        .password(passwordEncoder().encode("password"))
-                        .authorities("read")
-                        .build()
-        );
     }
 
     @Bean
