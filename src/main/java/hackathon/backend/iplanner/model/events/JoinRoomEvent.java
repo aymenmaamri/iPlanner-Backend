@@ -6,9 +6,6 @@ import java.util.Map;
 
 @Getter
 @Setter
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
 public class JoinRoomEvent extends RoomEvent {
 
     Map<String, RoomEvent> currentPlayers;

@@ -15,8 +15,6 @@ import java.util.Map;
 @AllArgsConstructor
 @NoArgsConstructor
 public class UserStory {
-    @Id
-    private ObjectId storyId;
     private String title;
     private String description;
     private Map<String, PokerCard> playerEstimations;

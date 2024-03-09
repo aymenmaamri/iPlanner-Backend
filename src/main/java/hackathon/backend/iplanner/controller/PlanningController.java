@@ -1,12 +1,17 @@
 package hackathon.backend.iplanner.controller;
 
+import hackathon.backend.iplanner.enums.EventType;
 import hackathon.backend.iplanner.model.PlanningRoom;
 import hackathon.backend.iplanner.model.events.*;
 import hackathon.backend.iplanner.service.PlanningRoomService;
+import hackathon.backend.iplanner.service.UserStoriesService;
+
+import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.messaging.simp.annotation.SendToUser;
 import org.springframework.stereotype.Controller;
 
 @Controller
@@ -15,10 +20,25 @@ public class PlanningController {
 
     private final SimpMessagingTemplate messagingTemplate;
     private final PlanningRoomService planningRoomService;
+    private final UserStoriesService userStoriesService;
 
-    public PlanningController(SimpMessagingTemplate messagingTemplate, PlanningRoomService planningRoomService) {
+    public PlanningController(SimpMessagingTemplate messagingTemplate, PlanningRoomService planningRoomService, UserStoriesService userStoriesService) {
         this.messagingTemplate = messagingTemplate;
         this.planningRoomService = planningRoomService;
+        this.userStoriesService = userStoriesService;
+    }
+
+    @MessageMapping("/user/{username}/ping")
+    public void sendEvent(@Payload PingEvent pingEvent, @DestinationVariable String username, SimpMessageHeaderAccessor headerAccessor){
+        String roomName = pingEvent.getRoomName();
+        //String username = (String) headerAccessor.getSessionAttributes().get("username");
+        System.out.println("ping message received from " + username);
+
+        PongEvent pongEvent = PongEvent.builder().build();
+        pongEvent.setType(EventType.PONG);
+
+        // message sent to user/{username}/pong
+        messagingTemplate.convertAndSendToUser(username, "/pong", pongEvent);
     }
 
     @MessageMapping("/send")
@@ -30,6 +50,7 @@ public class PlanningController {
 
     @MessageMapping("/play-card")
     public PlayCardEvent sendEvent(@Payload PlayCardEvent playCardEvent){
+        System.out.println(playCardEvent.getEventId());
         // Todo: should i forward then save event, or other way around
         planningRoomService.saveEvent(playCardEvent);
         messagingTemplate.convertAndSend("/topic/" + playCardEvent.getRoomName(), playCardEvent);
@@ -43,7 +64,7 @@ public class PlanningController {
         return createStoryEvent;
     }
 
-    @MessageMapping("/joinRoom")
+    @MessageMapping("/join-room")
     public JoinRoomEvent addUser(@Payload JoinRoomEvent joinRoomEvent, SimpMessageHeaderAccessor headerAccessor){
         headerAccessor.getSessionAttributes().put("username", joinRoomEvent.getSender());
         headerAccessor.getSessionAttributes().put("roomName", joinRoomEvent.getRoomName());
@@ -75,6 +96,7 @@ public class PlanningController {
     @MessageMapping("/estimate-story")
     public EstimateStoryEvent estimateStory(@Payload EstimateStoryEvent estimateStoryEvent){
         planningRoomService.saveEvent(estimateStoryEvent);
+        estimateStoryEvent.setEstimatedRoomStories(userStoriesService.getRoomUserStories(estimateStoryEvent.getRoomName()));
         messagingTemplate.convertAndSend("/topic/" + estimateStoryEvent.getRoomName(), estimateStoryEvent);
         return estimateStoryEvent;
     }

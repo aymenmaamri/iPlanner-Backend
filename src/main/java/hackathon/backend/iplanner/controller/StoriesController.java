@@ -16,9 +16,10 @@ public class StoriesController {
     public StoriesController(PlanningRoomService planningRoomService) {
         this.planningRoomService = planningRoomService;
     }
+}
 
-    @GetMapping("/list")
+    /*@GetMapping("/list")
     public ResponseEntity<List<CreateStoryEvent>> getRoomStories(@PathVariable String roomName){
         List<CreateStoryEvent> stories = planningRoomService.getRoomStories(roomName);
         return ResponseEntity.ok(stories);
-    }}
+    }}*/

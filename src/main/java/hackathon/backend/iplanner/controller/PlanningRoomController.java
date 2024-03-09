@@ -41,6 +41,7 @@ public class PlanningRoomController {
             String initiatorUsername = authentication.getName();
             // TODO: is this valid, to set the room owner in the DTO?
             planningRoomDto.setRoomOwner(initiatorUsername);
+            planningRoomDto.setRoomLeader(initiatorUsername);
             PlanningRoom created = planningRoomService.createPlanningRoom(planningRoomDto);
             return ResponseEntity.status(HttpStatus.CREATED).body(modelMapper.map(created, PlanningRoomDto.class));
         } catch (PlanningRoomAlreadyExistsException ex) {

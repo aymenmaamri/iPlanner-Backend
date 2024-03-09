@@ -13,7 +13,7 @@ import java.util.List;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class UserEvent {
+public class UserEvents {
     // Do I need an id here?
     @Id
     private String id;

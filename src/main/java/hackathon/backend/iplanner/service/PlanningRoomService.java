@@ -1,6 +1,7 @@
 package hackathon.backend.iplanner.service;
 
 import hackathon.backend.iplanner.dto.PlanningRoomDto;
+import hackathon.backend.iplanner.enums.EventType;
 import hackathon.backend.iplanner.exception.PlanningRoomAlreadyExistsException;
 import hackathon.backend.iplanner.model.*;
 import hackathon.backend.iplanner.model.events.*;
@@ -10,6 +11,7 @@ import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 public class PlanningRoomService {
@@ -36,7 +38,7 @@ public class PlanningRoomService {
             throw new PlanningRoomAlreadyExistsException();
         }
         planningRoom = modelMapper.map(planningRoomDto, PlanningRoom.class);
-        planningRoom.setUserEvents(new HashMap<String, UserEvent>());
+        planningRoom.setUserEvents(new HashMap<String, UserEvents>());
         return planningRoomRepository.save(planningRoom);
     }
 
@@ -56,7 +58,7 @@ public class PlanningRoomService {
 
         // check if there is a free pos for user
         if(planningRoom.isJoinable()){
-            Map<String, UserEvent> userEvents = planningRoom.getUserEvents();
+            Map<String, UserEvents> userEvents = planningRoom.getUserEvents();
             // user already exists in history of room
             if(userEvents.get(joinRoomEvent.getSender()) != null) {
                 userEvents.get(joinRoomEvent.getSender()).getEventList().add(joinRoomEvent);
@@ -64,7 +66,7 @@ public class PlanningRoomService {
                 User user = userService.getUserByUsername(joinRoomEvent.getSender());
                 List<RoomEvent> events = new ArrayList<RoomEvent>();
                 events.add(joinRoomEvent);
-                userEvents.put(joinRoomEvent.getSender(), new UserEvent(new ObjectId().toString(), user, events));
+                userEvents.put(joinRoomEvent.getSender(), new UserEvents(new ObjectId().toString(), user, events));
             }
             PlanningRoom joined = planningRoomRepository.save(planningRoom);
             return joined;
@@ -115,16 +117,11 @@ public class PlanningRoomService {
         throw new IllegalStateException("User is not room owner");
     }
 
-    public List<CreateStoryEvent> getRoomStories(String roomName) {
-        PlanningRoom planningRoom = planningRoomRepository.findByRoomName(roomName).orElseThrow(() -> new IllegalStateException("Room not found"));
-        return planningRoom.getStories();
-    }
-
     public PlanningRoom removeUserFromPlanningRoom(LeaveRoomEvent leaveRoomEvent) {
         PlanningRoom planningRoom = planningRoomRepository.findByRoomName(leaveRoomEvent.getRoomName())
                 .orElseThrow(() -> new IllegalStateException("Room not found"));
 
-        Map<String, UserEvent> userEvents = planningRoom.getUserEvents();
+        Map<String, UserEvents> userEvents = planningRoom.getUserEvents();
         if(userEvents.get(leaveRoomEvent.getSender()) != null) {
             userEvents.get(leaveRoomEvent.getSender()).getEventList().add(leaveRoomEvent);
         }
@@ -146,13 +143,28 @@ public class PlanningRoomService {
     // maybe extract logic to avoid duplication
     public void saveEvent(RoomEvent roomEvent) {
         PlanningRoom planningRoom = planningRoomRepository.findByRoomName(roomEvent.getRoomName()).orElseThrow(() -> new IllegalStateException("Room not found"));
-        Map<String, UserEvent> userEvents = planningRoom.getUserEvents();
-        UserEvent userEvent = userEvents.get(roomEvent.getSender());
+        Map<String, UserEvents> userEvents = planningRoom.getUserEvents();
+        UserEvents userEvent = userEvents.get(roomEvent.getSender());
         if(userEvent != null) {
             userEvent.getEventList().add(roomEvent);
         }
         // Todo: can i only modify the event log without saving the entire planning room object
         planningRoomRepository.save(planningRoom);
     }
+
+    public LeaderDisconnectedEvent handleLeaderDisconnect(String roomName, String disconnectedLeader){
+
+      PlanningRoom planningRoom = planningRoomRepository.findByRoomName(roomName).orElseThrow(() -> new IllegalStateException("Room not found"));
+      String newLeader = planningRoom.getCurrentPlayers().get(0);
+      planningRoom.setRoomLeader(newLeader);
+      planningRoomRepository.save(planningRoom);
+
+      LeaderDisconnectedEvent leaderDisconnectedEvent = LeaderDisconnectedEvent.builder().build();
+      leaderDisconnectedEvent.setRoomName(roomName);
+      leaderDisconnectedEvent.setType(EventType.LEADER_DISCONNECT);
+      leaderDisconnectedEvent.setDisconnectedLeader(disconnectedLeader);
+      leaderDisconnectedEvent.setNewLeader(newLeader);
+      return leaderDisconnectedEvent;
+    }  
 
 }

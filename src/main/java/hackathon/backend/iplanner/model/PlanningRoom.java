@@ -19,16 +19,19 @@ import java.util.stream.Collectors;
 @Document(collection = "planning_room")
 public class PlanningRoom {
 
+    //TODO: remove room prefix from field names
+    
     @Id
     private ObjectId roomId;
     private String roomName;
     private String roomOwner;
+    private String roomLeader;
     // This field is set by the user, this number msut be between 2 and 7
     private int maxRoomPlannersNumber;
 
     //TODO: Implement later
     // private long keepAliveDurationSeconds;
-    private Map<String, UserEvent> userEvents;
+    private Map<String, UserEvents> userEvents;
 
     // TODO: should this be here, this constraint represents the maximal number of players a room can have
     public static final int MAX_PLAYERS_PER_ROOM = 7;
@@ -36,15 +39,19 @@ public class PlanningRoom {
     public boolean isOwner(String username){
         return this.roomOwner.equals(username);
     }
-    public boolean isUserCurrentlyJoined(String username) {
-        UserEvent userEvent = userEvents.get(username);
 
-        if (userEvent == null || userEvent.getEventList().isEmpty()) {
+    public boolean isLeader(String username){
+      return this.roomLeader.equals(username);
+  }
+    public boolean isUserCurrentlyJoined(String username) {
+        UserEvents userEvents = this.userEvents.get(username);
+
+        if (userEvents == null || userEvents.getEventList().isEmpty()) {
             // If the event list is empty, the user has not joined
             return false;
         }
 
-        List<RoomEvent> eventList = userEvent.getEventList();
+        List<RoomEvent> eventList = userEvents.getEventList();
         for (int i = eventList.size() - 1; i >= 0; i--) {
             RoomEvent event = eventList.get(i);
             if (event instanceof JoinRoomEvent) {
@@ -65,7 +72,7 @@ public class PlanningRoom {
 
         // Check if there is room for another user to join
        int currentJoinedUsers = (int) userEvents.values().stream()
-               .filter(userEvent -> isUserCurrentlyJoined(userEvent.getUser().getUsername()))
+               .filter(userEvents -> isUserCurrentlyJoined(userEvents.getUser().getUsername()))
                .count();
 
        if (currentJoinedUsers < maxRoomPlannersNumber) return true;
@@ -99,7 +106,7 @@ public class PlanningRoom {
 
     public List<CreateStoryEvent> getStories() {
         List<CreateStoryEvent> roomStories = userEvents.values().stream()
-                .flatMap(userEvent -> userEvent.getEventList().stream())
+                .flatMap(userEvents -> userEvents.getEventList().stream())
                 .filter(event -> event instanceof CreateStoryEvent)
                 .map(event -> (CreateStoryEvent) event)
                 .collect(Collectors.toList());
